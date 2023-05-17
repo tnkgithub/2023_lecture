@@ -7,7 +7,7 @@ NUM_SHIFTS = 3  # 勤務パターンの数
 DAYS_PER_WEEK = 7  # 週の日数
 DAYS_PER_SHIFT = DAYS_PER_WEEK // NUM_SHIFTS  # 勤務パターンごとの日数
 WORKING_DAYS_PER_WEEK = 5  # 1人のナースの1週間の勤務日数
-REQUIRED_NURSES_PER_SHIFT = [3, 3, 2]  # 勤務パターンごとに必要なナースの人数
+REQUIRED_NURSES_PER_SHIFT = [2, 2, 1]  # 勤務パターンごとに必要なナースの人数
 
 # ナースごとのシフト要望
 nurse_shift_requests = [
