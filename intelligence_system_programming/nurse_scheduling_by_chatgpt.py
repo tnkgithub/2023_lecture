@@ -1,84 +1,116 @@
 #%%
-from constraint import Problem
+"""ナーススケジューリング問題"""
+from ortools.sat.python import cp_model
 
-# 定数
-NUM_NURSES = 10  # ナースの人数
-NUM_SHIFTS = 3  # 勤務パターンの数
-DAYS_PER_WEEK = 7  # 週の日数
-DAYS_PER_SHIFT = DAYS_PER_WEEK // NUM_SHIFTS  # 勤務パターンごとの日数
-WORKING_DAYS_PER_WEEK = 5  # 1人のナースの1週間の勤務日数
-REQUIRED_NURSES_PER_SHIFT = [2, 2, 1]  # 勤務パターンごとに必要なナースの人数
 
-# ナースごとのシフト要望
-nurse_shift_requests = [
-    [0, 1, 2, 0, 1, 2, 0],  # ナース0のシフト要望（0: 日勤, 1: 夜勤, 2: 深夜勤）
-    [1, 0, 2, 1, 0, 2, 1],  # ナース1のシフト要望
-    [2, 1, 0, 2, 1, 0, 2],  # ナース2のシフト要望
-    [0, 1, 2, 0, 1, 2, 0],  # ナース3のシフト要望
-    [1, 0, 2, 1, 0, 2, 1],  # ナース4のシフト要望
-    [2, 1, 0, 2, 1, 0, 2],  # ナース5のシフト要望
-    [0, 1, 2, 0, 1, 2, 0],  # ナース6のシフト要望
-    [1, 0, 2, 1, 0, 2, 1],  # ナース7のシフト要望
-    [2, 1, 0, 2, 1, 0, 2],  # ナース8のシフト要望
-    [0, 1, 2, 0, 1, 2, 0],  # ナース9のシフト要望
+def main():
+    num_nurses = 10 # ナースの人数
+    num_shifts = 3 # 勤務パターン数、日勤、夜勤、深夜勤
+    num_days = 7 # 日数
+    num_shifts_per_day = 7 # 1日に必要な看護師の人数(日勤3人＋夜勤2人＋深夜勤2人)
+    all_nurses = range(num_nurses) # ナースのリスト
+    all_shifts = range(num_shifts) # 勤務パターンのリスト(日勤：0, 夜勤：1, 深夜勤：2)
+    all_days = range(num_days) # 日数のリスト
+    # 各ナースのシフト要望 [日勤, 夜勤, 深夜勤]
+    shift_requests = [[[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 0, 1], [0, 0, 1], [0, 1, 0], [0, 0, 1]],
+                        [[0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 1, 0], [1, 0, 0],[0, 0, 0], [0, 0, 1]],
+                        [[0, 1, 0], [0, 1, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0],[0, 1, 0], [0, 0, 0]],
+                        [[0, 0, 1], [0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 0],[1, 0, 0], [0, 0, 0]],
+                        [[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 0, 0], [1, 0, 0],[0, 1, 0], [0, 0, 0]],
+                        [[1, 0, 0], [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 0, 0],[0, 0, 1], [0, 1, 0]],
+                        [[0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 1], [0, 1, 0],[0, 0, 0], [1, 0, 0]],
+                        [[0, 1, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 1, 0],[0, 0, 0], [0, 0, 1]],
+                        [[0, 0, 0], [0, 1, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0],[0, 1, 0], [0, 0, 0]],
+                        [[0, 0, 1], [0, 0, 0], [0, 1, 0], [0, 0, 0], [1, 0, 0],[0, 0, 0], [0, 1, 0]]
+                        ]
 
-    # 以下、ナース3からナース9までのシフト要望を追加
-]
+    # モデルの作成
+    model = cp_model.CpModel()
 
-# 勤務パターンのリストを生成
-shift_patterns = []
-for nurse in range(NUM_NURSES):
-    for day in range(DAYS_PER_WEEK):
-        shift_patterns.append((nurse, day % NUM_SHIFTS))
+    # 各ナースの各日の各シフトの割り当てを表すブール変数を作成
+    # shifts[10人のナース、7日間、3つのシフト]
+    shifts = {}
+    for n in all_nurses:
+        for d in all_days:
+            for s in all_shifts:
+                shifts[(n, d, s)] = model.NewBoolVar('shift_n%id%is%i' % (n, d, s))
 
-# 問題の定義
-problem = Problem()
+    # 各シフトの人数の制約
+    # 日勤：3人、夜勤：2人、深夜勤：2人
+    for d in all_days:
+        model.Add(sum(shifts[(n, d, 0)] for n in all_nurses) == 3)
+        model.Add(sum(shifts[(n, d, 1)] for n in all_nurses) == 2)
+        model.Add(sum(shifts[(n, d, 2)] for n in all_nurses) == 2)
 
-# ナースの勤務パターン変数を定義
-variables = []
-for nurse in range(NUM_NURSES):
-    for shift in range(NUM_SHIFTS):
-        variable_name = f"nurse_{nurse}_shift_{shift}"  # ユニークな変数名を生成
-        problem.addVariable(variable_name, [0, 1])
-        variables.append(variable_name)
+    # 各看護師は1日に1つのシフトしか担当しない
+    for n in all_nurses:
+        for d in all_days:
+            model.Add(sum(shifts[(n, d, s)] for s in all_shifts) <= 1)
 
-# 各勤務時間帯に必要なナースの人数の制約を追加
-for shift in range(NUM_SHIFTS):
-    shift_variables = [variable for variable in variables if variable.endswith(f"shift_{shift}")]
-    problem.addConstraint(
-        lambda *shift_variables: sum(value == 1 for value in shift_variables) == REQUIRED_NURSES_PER_SHIFT[shift],
-        shift_variables
-    )
+    # 各看護師は1週間に5日以上働かない
+    #for n in all_nurses:
+    #    model.Add(sum(shifts[(n, d, s)] for d in all_days for s in all_shifts) <= 5)
 
-# 各ナースの1週間の勤務日数の制約を追加
-for nurse in range(NUM_NURSES):
-    nurse_variables = [variable for variable in variables if variable.startswith(f"nurse_{nurse}")]
-    problem.addConstraint(
-        lambda *nurse_variables: sum(value == 1 for value in nurse_variables) == WORKING_DAYS_PER_WEEK,
-        nurse_variables
-    )
 
-#ナースのシフト要望の制約を追加
-for nurse in range(NUM_NURSES):
-    for day in range(DAYS_PER_WEEK):
-        shift = nurse_shift_requests[nurse][day]
-        if shift != -1:
-            variable_name = f"nurse_{nurse}shift{shift}"
-            problem.addConstraint(lambda value, variable_name=variable_name: value == 1, [variable_name])
+    # 各ナースは、最低限必要なシフト数以上、最大限必要なシフト数以下で働く
+    min_shifts_per_nurse = (num_shifts_per_day * num_days) // num_nurses # 1日に必要な看護師の人数×日数÷看護師の人数の商
+    if num_shifts * num_days % num_nurses == 0: # 割り切れる場合
+        max_shifts_per_nurse = min_shifts_per_nurse # 最大限必要なシフト数＝最低限必要なシフト数
+    else: # 割り切れない場合
+        max_shifts_per_nurse = min_shifts_per_nurse + 1 # 最大限必要なシフト数＝最低限必要なシフト数＋１
+    for n in all_nurses:
+        num_shifts_worked = 0
+        for d in all_days:
+            for s in all_shifts:
+                num_shifts_worked += shifts[(n, d, s)] # 各ナースの各日の各シフトの割り当てを表すブール変数を足し合わせる
+        model.Add(min_shifts_per_nurse <= num_shifts_worked) # 最低限必要なシフト数以上
+        model.Add(num_shifts_worked <= max_shifts_per_nurse) # 最大限必要なシフト数以下
 
-#解の検索
-solutions = problem.getSolutions()
+    # 目的関数を最大化
+    model.Maximize(
+        sum(shift_requests[n][d][s] * shifts[(n, d, s)] for n in all_nurses
+            for d in all_days for s in all_shifts))
 
-#結果の出力
-if len(solutions) > 0:
-    for i, solution in enumerate(solutions):
-        print(f"Solution {i+1}:")
-        for day in range(DAYS_PER_WEEK):
-            print(f"Day {day+1}:")
-            for shift in range(NUM_SHIFTS):
-                nurses = [int(variable.split("")[1]) + 1 for variable, value in solution.items() if variable.endswith(f"shift{shift}") and value == 1]
-                print(f"Shift {shift+1}: Nurses {', '.join(map(str, nurses))}")
-            print()
-else:
-    print("No valid solutions found.")
+    # ソルバーの作成と解の探索
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+
+    # 結果の出力
+    if status == cp_model.OPTIMAL:
+        print('Solution:')
+        for d in all_days:
+            print('Day', d+1)
+            for s in all_shifts:
+                for n in all_nurses:
+                    if solver.Value(shifts[(n, d, s)]) == 1: # 割り当てられたシフトの場合
+                        if shift_requests[n][d][s] == 1: # 希望シフトの場合
+                            if s == 0:
+                                print('Nurse', n, 'works shift day (requested).')
+                            elif s == 1:
+                                print('Nurse', n, 'works shift night (requested).')
+                            else:
+                                print('Nurse', n, 'works shift midnight (requested).')
+                        else: # 希望シフトでない場合
+                            if s == 0:
+                                print('Nurse', n, 'works shift day (not requested).')
+                            elif s == 1:
+                                print('Nurse', n, 'works shift night (not requested).')
+                            else:
+                                print('Nurse', n, 'works shift midnight (not requested).')
+            print() # 改行
+        # 各ナースの各日の各シフトの割り当てを表すブール変数を足し合わせる
+        print(f'Number of shift requests met = {solver.ObjectiveValue()}',
+              f'(out of {num_nurses * min_shifts_per_nurse})')
+    else:
+        print('No optimal solution found !')
+
+    # Statistics.
+    print('\nStatistics')
+    print('  - conflicts: %i' % solver.NumConflicts()) # コンフリクト数
+    print('  - branches : %i' % solver.NumBranches()) # ブランチ数
+    print('  - wall time: %f s' % solver.WallTime()) # 実行時間
+
+
+if __name__ == '__main__':
+    main()
 # %%

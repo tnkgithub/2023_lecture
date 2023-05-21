@@ -5,7 +5,7 @@ from ortools.sat.python import cp_model
 num_nurses = 10 # ナースの人数
 num_shifts_pattern = 3 # 勤務パターン数、日勤、夜勤、深夜勤
 num_days = 7 # 日数
-num_nurses_per_day = 7 # 1日に必要な看護師の人数(日勤3人＋夜勤2人＋深夜勤2人)
+num_nurses_per_day = 5 # 1日に必要な看護師の人数(日勤3人＋夜勤2人＋深夜勤2人)
 
 nurses = range(num_nurses) # ナースのリスト
 shifts_patterns = range(num_shifts_pattern) # 勤務パターンのリスト(日勤：0, 夜勤：1, 深夜勤：2)
@@ -46,9 +46,9 @@ for n in nurses:
 1日に3人の日勤、2人の夜勤、2人の深夜勤が必要とする
 '''
 for d in days:
-    model.Add(sum(shifts[(n, d, 0)] for n in nurses) == 3) # 日勤の人数
+    model.Add(sum(shifts[(n, d, 0)] for n in nurses) == 2) # 日勤の人数
     model.Add(sum(shifts[(n, d, 1)] for n in nurses) == 2) # 夜勤の人数
-    model.Add(sum(shifts[(n, d, 2)] for n in nurses) == 2) # 深夜勤の人数
+    model.Add(sum(shifts[(n, d, 2)] for n in nurses) == 1) # 深夜勤の人数
 
 #%%
 '''
