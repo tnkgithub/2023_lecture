@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "ls"
+version = "0.1.0"
+description = ""
+authors = ["tnkgithub <tnk.github@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10.6, <3.12"
+scipy = "^1.10.1"
+ortools = "^9.6.2534"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

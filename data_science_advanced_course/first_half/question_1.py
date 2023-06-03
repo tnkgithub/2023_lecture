@@ -8,11 +8,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 #%%
-# データを読み込み、numpy配列(float)に変換
-df = pd.read_csv('sangyohi.csv')
-features = df.to_numpy()
-features = features.astype(np.float32)
+# csvファイルを読み込み、numpy配列に変換
+df = pd.read_csv('sangyohi.csv', header=None)
+data = df.values
 
 # %%
-# クラスタ数
-n_clusters = [2, 3, 4, 5, 6]

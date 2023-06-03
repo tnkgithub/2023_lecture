@@ -16,17 +16,19 @@ import jp.co.ns_sol.sysrdc.opal.gmtime.TmStruct;
 
 /**
  * 単体テストクラス。
+ *
  * @author …
  */
 public class MyGmtimeTest {
 
     /**
      * テスト用のメイン関数。
+     *
      * @param args
      */
     public static void main(String[] args) {
         TmStruct ts = null;
-        ts = GmtimeCalculator.gmtime(946600000);
+        ts = GmtimeCalculator.gmtime(67767976138924799L);
         System.out.print(ts.getYear());
         System.out.print("/");
         System.out.print(ts.getMon());
