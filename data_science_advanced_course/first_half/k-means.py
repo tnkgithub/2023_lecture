@@ -1,79 +1,99 @@
-#%%
-import csv
+# %%
+# 必要なライブラリのインポート
+import pandas as pd
 import math
 import random
 
-# csvファイルのパス
-csv_file = 'sangyohi.csv'
+# データを読み込む
+df = pd.read_excel("sangyohi.xlsx", skiprows=10, usecols="B:AE", index_col=0)
 
-# データを格納するリスト
-data = []
-
-# データのインデックス
-index = [
-    '北海道', '青森県', '岩手県', '宮城県', '秋田県',
-    '山形県', '福島県', '茨城県', '栃木県', '群馬県',
-    '埼玉県', '千葉県', '東京都', '神奈川県', '新潟県',
-    '富山県', '石川県', '福井県', '山梨県', '長野県',
-    '岐阜県', '静岡県', '愛知県', '三重県', '滋賀県',
-    '京都府', '大阪府', '兵庫県', '奈良県', '和歌山県',
-    '鳥取県', '島根県', '岡山県', '広島県', '山口県',
-    '徳島県', '香川県', '愛媛県', '高知県', '福岡県',
-    '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県',
-    '鹿児島県', '沖縄県'
-]
-
-# csvファイルからデータを読み込む
-with open(csv_file, 'r') as file:
-    reader = csv.reader(file)
-    for row in reader:
-        data.append([float(value) for value in row])
-
-# データの次元数
-num_dimensions = len(data[0])
+# データのインデックスと値を取得
+index = df.index  # ['北海道', '青森',... ]
+data = df.values  #
 
 # クラスタの数
 k = 6
 
-# 各データ点をランダムに初期クラスタに割り当てる
-clusters = [random.randint(0, k-1) for _ in range(len(data))]
 
-# 中心点を再計算する
-def recalculate_centroids():
-    centroids = [[] for _ in range(k)]
-    for i, point in enumerate(data):
-        cluster = clusters[i]
-        centroids[cluster].append(point)
-    return [list(map(lambda x: sum(x) / len(x), zip(*centroid_points))) for centroid_points in centroids]
-
-# k-means法でクラスタリングを行う
-num_iterations = 20  # 反復回数
-iter = 0
-for _ in range(num_iterations):
-    centroids = recalculate_centroids()
-
-    # 各データ点を最も近い中心点に割り当てる
-    new_clusters = []
-    for point in data:
-        distances = [math.sqrt(sum((point[i] - centroids[j][i]) ** 2 for i in range(num_dimensions))) for j in range(k)]
-        nearest_cluster = min(range(k), key=lambda x: distances[x])
-        new_clusters.append(nearest_cluster)
-
-    # クラスタの割り当てが変わらなければ終了
-    # if new_clusters == clusters:
-    #     break
-    clusters = new_clusters
-    iter += 1
-
-print('iter:', iter)
-
-# クラスタリング結果を表示
-for i in range(k):
-    print('クラスタ', i+1)
-    for j in range(len(data)):
-        if clusters[j] == i:
-            print(index[j], end=' ')
-    print()
+# ユークリッド距離
+def euclidean_distance(x, y):
+    num_dimensions = len(x)
+    return math.sqrt(sum((x[i] - y[i]) ** 2 for i in range(num_dimensions)))
 
 
 # %%
+# 各データ間の距離を計算し、距離の和が小さい順にk個のデータを選ぶ
+def calc_representative_data(n_cluster=2):
+    representative_data = [None] * n_cluster
+    for k in range(n_cluster):
+        min_distance_sum = float("inf")  # 代表データの距離の和の最小値を無限大で初期化
+
+        # 各データ間の距離を計算
+        for i in range(len(data)):
+            distance_sum = 0  # データの距離の和を初期化
+
+            # すでに代表データとして選ばれているデータはスキップ
+            if i in representative_data:
+                continue
+
+            # データiと他のデータとの距離の和を計算
+            for j in range(len(data)):
+                distance = euclidean_distance(data[i], data[j])
+                distance_sum += distance
+
+            # 距離の和が小さいデータを代表データとして選ぶ
+            if distance_sum < min_distance_sum:
+                min_distance_sum = distance_sum
+                representative_data[k] = i
+
+    return representative_data
+
+
+# %%
+# 各クラスタの重心を計算して更新する
+def calc_centroids(n_cluster=2, centroids=None, clusters=None):
+    # データの次元数
+    num_dimensions = len(data[0])
+    # 新しい重心を格納するリスト
+    new_centroids = [None] * n_cluster
+
+    for k in range(n_cluster):
+        cluster_data = [data[i] for i in range(len(data)) if clusters[i] == k]
+        cluster_size = len(cluster_data)
+        centroid = [sum(dim) / cluster_size for dim in zip(*cluster_data)]
+        new_centroids[k] = centroid
+
+    # ここに重心を計算するコードを書く
+    return new_centroids
+
+
+# %%
+def kmanes(n_cluster=2):
+    # 代表データを獲得
+    centroids = calc_representative_data(n_cluster)
+    # クラスタを初期化
+    clusters = [None] * len(data)
+
+    while True:
+        # クラスタ割り当ての更新
+        for i in range(len(data)):
+            distances = [
+                euclidean_distance(data[i], data[centroid]) for centroid in centroids
+            ]
+            clusters[i] = distances.index(min(distances))
+
+        # 重心の更新
+        new_centroids = calc_centroids(n_cluster, centroids, clusters)
+
+        # 重心が収束したかどうかの判定
+        if new_centroids == centroids:
+            break
+
+        centroids = new_centroids
+
+    return clusters
+
+
+# %%
+clusters = kmanes(n_cluster=k)
+print(clusters)

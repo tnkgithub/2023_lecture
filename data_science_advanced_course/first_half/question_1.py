@@ -1,25 +1,31 @@
-'''
+"""
 " #%% " はvisutal studio code上で" #%% " で囲まれた範囲をjupyter notebookのcellのように実行できるようにするものです。
-'''
+"""
 
-#%%
+# %%
 import numpy as np
 import pandas as pd
 
-#%%
+# %%
 # csvファイルを読み込む
-df = pd.read_excel('sangyohi.xlsx', skiprows=10, usecols="B:AE", index_col=0)
+df = pd.read_excel("sangyohi.xlsx", skiprows=10, usecols="B:AE", index_col=0)
 labels = df.index
 
+print(labels)
+
 n_cluster = 2
+
 
 # %%
 # ユークリッド距離
 def euclidean_distance(x, y):
-    return np.sqrt(np.sum((x - y)**2))
+    return np.sqrt(np.sum((x - y) ** 2))
 
 
-#%%
+print(euclidean_distance(df.values[0], df.values[1]))
+
+
+# %%
 # k-means法
 def kmeans(x, k=2, max_iter=1000):
     # データの次元数
@@ -55,7 +61,7 @@ mu, r = kmeans(df.values, n_cluster)
 
 # 結果を表示
 for i in range(n_cluster):
-    print('クラスター{}:'.format(i))
+    print("クラスター{}:".format(i))
     print(labels[r[:, i] == 1])
     print()
 
