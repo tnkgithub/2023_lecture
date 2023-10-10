@@ -16,15 +16,13 @@ from tkinter import filedialog
 template_list = [
     "{}はとても{}です",
     "あなたの{}は{}です",
-    "あなたの{}は{}できます！",
     "あなたの{}はとても{}ですね",
-    "{}がとても{}なので好きです",
+    "あなたの{}がとても{}なので好きです",
 ]
 
 # 画像用テンプレート
 template_image_list = [
     "この{}は{}です",
-    "この{}は{}できます！",
     "この{}はとても{}ですね",
     "{}がとても{}なので好きです",
 ]
@@ -89,17 +87,8 @@ praise_list = [
     "高い",
 ]
 
-##ImageNetの画像に合わせて入力画像を変形させる
-image_converter = transforms.Compose(
-    [
-        transforms.Resize(224),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ]
-)
 
-
+# %%
 def home_speech(tokenizer, model):
     # 入力を促して，入力内容を取得
     print("あなたの褒めてほしいワードは？単語で入力して↓")
@@ -158,6 +147,16 @@ def home_image(tokenizer, bert_model):
     file_type = [("画像", "*.jpg")]
     # ファイルダイアログで画像ファイルを指定．ファイルパスを得る．
     filepath = filedialog.askopenfilename(filetypes=file_type)
+
+    ##ImageNetの画像に合わせて入力画像を変形させる
+    image_converter = transforms.Compose(
+        [
+            transforms.Resize(224),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
 
     # ImageNetの画像に合わせて入力画像を変形させる
     target_image = Image.open(filepath)
@@ -248,12 +247,14 @@ def main():
     print("画像なら1を，単語なら2を入力してください")
     input_num = input()
 
-    if input_num == "1":
+    if input_num == "1" or input_num == "１":
         home_image(tokenizer, bert_model)
-    elif input_num == "2":
+    elif input_num == "2" or input_num == "２":
         home_speech(tokenizer, bert_model)
 
 
 # %%
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+main()
+
+# %%
