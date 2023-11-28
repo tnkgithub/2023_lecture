@@ -8,6 +8,11 @@ struct LightSensor<T> {
     value: T,
 }
 
+// TemperatureSensor構造体の定義
+struct TemperatureSensor<T> {
+    value: T,
+}
+
 // LightSensorにSensorトレイトを実装
 impl<T> Sensor<T> for LightSensor<T>
 where
@@ -16,11 +21,6 @@ where
     fn read(&self) -> T {
         self.value.clone()
     }
-}
-
-// TemperatureSensor構造体の定義
-struct TemperatureSensor<T> {
-    value: T,
 }
 
 // TemperatureSensorにSensorトレイトを実装
