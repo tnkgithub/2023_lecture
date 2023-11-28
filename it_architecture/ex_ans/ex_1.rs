@@ -8,16 +8,16 @@ struct LightSensor {
     value: i32,
 }
 
+// TemperatureSensor構造体の定義
+struct TemperatureSensor {
+    value: f32,
+}
+
 // LightSensorにSensor<i32>トレイトを実装
 impl Sensor<i32> for LightSensor {
     fn read(&self) -> i32 {
         self.value
     }
-}
-
-// TemperatureSensor構造体の定義
-struct TemperatureSensor {
-    value: f32,
 }
 
 // TemperatureSensorにSensor<f32>トレイトを実装
