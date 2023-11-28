@@ -18,6 +18,11 @@ where
     }
 }
 
+// TemperatureSensor構造体の定義
+struct TemperatureSensor<T> {
+    value: T,
+}
+
 // TemperatureSensorにSensorトレイトを実装
 impl<T> Sensor<T> for TemperatureSensor<T>
 where
@@ -41,7 +46,7 @@ fn main() {
     let light_sensor = LightSensor { value: 42 };
 
     // TemperatureSensorのインスタンス作成
-    let temperature_sensor = TemperatureSensor { value: 25 };
+    let temperature_sensor = TemperatureSensor { value: 23 };
 
     // add関数を使用してLightSensorとTemperatureSensorの値を合計
     let total = add(&light_sensor, &temperature_sensor);
